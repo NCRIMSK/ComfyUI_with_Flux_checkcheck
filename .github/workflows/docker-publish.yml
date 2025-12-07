@@ -33,7 +33,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./comfyui-without-flux
+          file: ./comfyui-without-flux/Dockerfile
           push: true
           tags: ${{ steps.img.outputs.name }}:latest
