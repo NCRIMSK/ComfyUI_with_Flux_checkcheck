@@ -36,12 +36,24 @@ jobs:
           sudo apt-get clean
           docker system prune -af || true
 
-      - name: Build and push
+      - name: Build and push (no models)
         uses: docker/build-push-action@v6
         with:
           context: ./comfyui-without-flux
           file: ./comfyui-without-flux/Dockerfile
           push: true
-          tags: ${{ steps.img.outputs.name }}:latest
+          tags: |
+            ${{ steps.img.outputs.name }}:latest
           build-args: |
             DOWNLOAD_MODELS=0
+
+      - name: Build and push (with models)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./comfyui-without-flux
+          file: ./comfyui-without-flux/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.img.outputs.name }}:with-models
+          build-args: |
+            DOWNLOAD_MODELS=1
