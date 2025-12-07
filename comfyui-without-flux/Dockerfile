@@ -24,8 +24,8 @@ RUN python3 -m venv ${VENV_PATH}
 ENV PATH="${VENV_PATH}/bin:${PATH}"
 
 # Install PyTorch with CUDA 12.8 in the venv
-RUN pip install --no-cache-dir -U torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
-    --index-url https://download.pytorch.org/whl/cu126
+//RUN pip install --no-cache-dir -U torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
+  //  --index-url https://download.pytorch.org/whl/cu126
     
 # Clone ComfyUI and base requirements
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /ComfyUI && \
@@ -151,6 +151,9 @@ ENV PATH="/opt/venv/bin:/usr/local/cuda/bin:${PATH}"
 COPY --from=builder /ComfyUI /ComfyUI
 COPY --from=builder /ai-toolkit /ai-toolkit
 COPY --from=builder /opt/venv /opt/venv
+
+RUN pip install --no-cache-dir -U torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
+    --index-url https://download.pytorch.org/whl/cu126
 
 # Startup and helper scripts
 COPY --chmod=755 start-ssh-only.sh /start.sh
