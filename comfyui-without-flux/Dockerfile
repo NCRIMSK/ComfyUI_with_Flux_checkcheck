@@ -1,9 +1,9 @@
-ARG DOCKER_FROM=nvidia/cuda:12.8.0-runtime-ubuntu22.04
+ARG DOCKER_FROM=nvidia/cuda:12.6.0-runtime-ubuntu22.04
 
 ###############################
 # Builder stage
 ###############################
-FROM nvidia/cuda:12.8.0-devel-ubuntu22.04 AS builder
+FROM nvidia/cuda:12.6.0-devel-ubuntu22.04 AS builder
 
 # Install Python, git, and build dependencies for compiling wheels
 RUN apt-get update -y && \
@@ -24,8 +24,8 @@ RUN python3 -m venv ${VENV_PATH}
 ENV PATH="${VENV_PATH}/bin:${PATH}"
 
 # Install PyTorch with CUDA 12.8 in the venv
-RUN pip install --no-cache-dir -U torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 \
-    --index-url https://download.pytorch.org/whl/cu128
+RUN pip install --no-cache-dir -U torch torchvision torchaudio \
+    --index-url https://download.pytorch.org/whl/cu126
 
 # Clone ComfyUI and base requirements
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /ComfyUI && \
