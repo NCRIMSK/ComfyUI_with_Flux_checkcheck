@@ -1,4 +1,6 @@
 ARG DOCKER_FROM=nvidia/cuda:12.6.0-runtime-ubuntu22.04
+ARG DOWNLOAD_MODELS=0
+
 
 ###############################
 # Builder stage
@@ -23,10 +25,7 @@ ENV VENV_PATH=/opt/venv
 RUN python3 -m venv ${VENV_PATH}
 ENV PATH="${VENV_PATH}/bin:${PATH}"
 
-# Install PyTorch with CUDA 12.8 in the venv
-//RUN pip install --no-cache-dir -U torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
-  //  --index-url https://download.pytorch.org/whl/cu126
-    
+
 # Clone ComfyUI and base requirements
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /ComfyUI && \
     pip install --no-cache-dir -r /ComfyUI/requirements.txt && \
@@ -183,7 +182,8 @@ EXPOSE 7860
 EXPOSE 8675
 
 # Downloads and runtime-only adjustments
-RUN wget "https://github.com/comfyanonymous/ComfyUI_examples/blob/master/flux/flux_dev_example.png" -P /ComfyUI
+RUN wget -O /ComfyUI/flux_dev_example.png \
+  "https://raw.githubusercontent.com/comfyanonymous/ComfyUI_examples/master/flux/flux_dev_example.png" -P /ComfyUI
 
  
 
@@ -216,18 +216,27 @@ COPY --chmod=755 download_VibeVoice.sh /download_VibeVoice.sh
 COPY --chmod=755 disable_mixlab.sh /disable_mixlab.sh
 
 # Runtime model downloads (keep large assets out of builder to avoid duplication)
-RUN mkdir -p /ComfyUI/models/ultralytics/bbox && \
-    wget "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt?download=true" -O /ComfyUI/models/ultralytics/bbox/face_yolov8m.pt
-
-RUN mkdir -p /ComfyUI/models/insightface && \
-    wget "https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx?download=true" -O /ComfyUI/models/insightface/inswapper_128.onnx
+RUN if [ "$DOWNLOAD_MODELS" = "1" ]; then \
+    mkdir -p /ComfyUI/models/ultralytics/bbox && \
+    wget "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt?download=true" \
+      -O /ComfyUI/models/ultralytics/bbox/face_yolov8m.pt ; \
+    fi
+RUN if [ "$DOWNLOAD_MODELS" = "1" ]; then \
+    mkdir -p /ComfyUI/models/insightface && \
+    wget "https://huggingface.co/ezioruan/inswapper_128.onnx/resolve/main/inswapper_128.onnx?download=true" \
+      -O /ComfyUI/models/insightface/inswapper_128.onnx ; \
+    fi
 
 # VibeVoice note: to pin transformers if needed, uncomment below line
 # RUN pip install transformers==4.49.0
 
 # Tutorial workflow model
-RUN mkdir -p /ComfyUI/models/checkpoints && \
-    wget "https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive/resolve/main/v1-5-pruned-emaonly-fp16.safetensors?download=true" -O /ComfyUI/models/checkpoints/v1-5-pruned-emaonly-fp16.safetensors
+
+RUN if [ "$DOWNLOAD_MODELS" = "1" ]; then \
+    mkdir -p /ComfyUI/models/checkpoints && \
+    wget "https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive/resolve/main/v1-5-pruned-emaonly-fp16.safetensors?download=true" \
+      -O /ComfyUI/models/checkpoints/v1-5-pruned-emaonly-fp16.safetensors ; \
+    fi
 
 # AI-Toolkit default config and utility
 COPY --chmod=644 ai-toolkit/train_lora.yaml /ai-toolkit/config/train_lora.yaml
